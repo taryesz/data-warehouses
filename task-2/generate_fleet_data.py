@@ -96,7 +96,7 @@ class FleetDataGenerator(Config):
     def save_to_bulk(self, snapshot='T1'):
         """Zapisuje dane floty tramwajowej do BULK"""
     
-        filename = f'flota_tramwajowa_{snapshot}.bulk'
+        filename = f'tramwaje_{snapshot}.bulk'
         
         with open(filename, 'w', encoding='utf-8') as f:
        
@@ -104,16 +104,7 @@ class FleetDataGenerator(Config):
                 line = (
                     f"{tram['Numer_Boczny']}|"
                     f"{tram['Marka']}|"
-                    f"{tram['Model']}|"
-                    f"{tram['Rok_Produkcji']}|"
-                    f"{tram['Czy_Niskopodlogowy']}|"
-                    f"{tram['Wymiary']}|"
-                    f"{tram['Czy_Dwukierunkowy']}|"
-                    f"{tram['Liczba_Wagonow']}|"
-                    f"{tram['Prędkość_Maksymalna']}|"
-                    f"{tram['Pasażerowie_Stojący']}|"
-                    f"{tram['Pasażerowie_Siedzący']}|"
-                    f"{tram['Czy_Sprawny']}\n"
+                    f"{tram['Model']}|\n"
                 )
                 f.write(line)
         

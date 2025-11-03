@@ -154,7 +154,7 @@ class EmployeesDataGenerator(Config):
     def save_to_bulk(self, snapshot='T1'):
         """Zapisuje dane pracownikow do BULK - TYLKO KIEROWCY"""
         
-        filename = f'pracownicy_{snapshot}.bulk'
+        filename = f'kierowcy_{snapshot}.bulk'
         
         # Tylko kierowcy
         drivers = [employee for employee in self.employees_data if employee['Stanowisko'] == 'Kierowca']
@@ -165,14 +165,7 @@ class EmployeesDataGenerator(Config):
                 line = (
                     f"{employee['ID_Pracownika']}|"
                     f"{employee['Imię']}|"
-                    f"{employee['Drugie_Imię']}|"
-                    f"{employee['Nazwisko']}|"
-                    f"{employee['Data_Urodzenia']}|"
-                    f"{employee['Płeć']}|"
-                    f"{employee['PESEL']}|"
-                    f"{employee['Data_Zatrudnienia']}|"
-                    f"{employee['Stanowisko']}|"
-                    f"{employee['Wykształcenie_Zawód']}\n"
+                    f"{employee['Nazwisko']}|\n"
                 )
                 f.write(line)
         

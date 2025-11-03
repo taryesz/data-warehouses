@@ -2,7 +2,7 @@ import pandas as pd
 import random
 import os
 from datetime import datetime, timedelta, time
-from config import Config # Importuje Twój oryginalny config
+from config import Config 
 
 class TramConnectDataGenerator(Config):
 
@@ -19,26 +19,22 @@ class TramConnectDataGenerator(Config):
         self.tram_availability = {}
         self.driver_availability = {}
         
-        # --- ZMIANA: ---
-        # Używamy EVENT_TRACKING_START z configu jako bazę dla T1
         self.DATE_T1 = self.EVENT_TRACKING_START 
         
-        # Obliczamy datę T2 jako początek następnego miesiąca po T1
+        # Obliczamy date T2 jako poczatek nastepnego miesiaca po T1
         next_month = self.DATE_T1.month + 1
         next_year = self.DATE_T1.year
         if next_month > 12:
             next_month = 1
             next_year += 1
         # Ustawiamy T2 na pierwszy dzień następnego miesiąca
-        self.DATE_T2 = datetime(next_year, next_month, 1) 
-        
-        print(f"Generator skonfigurowany: T1 start = {self.DATE_T1.date()}, T2 start = {self.DATE_T2.date()}")
-
+        self.DATE_T2 = datetime(2026, 1, 1) 
 
     def load_existing_data(self, snapshot='T1'):
-        """Wczytuje istniejące dane z plików CSV (flota i pracownicy)"""
+        """Wczytuje istniejace dane z plikow CSV (flota i kierowcy)"""
         
         fleet_file = f'flota_tramwajowa_{snapshot}.csv'
+
         try:
             fleet_df = pd.read_csv(fleet_file)
             self.trams_data = [row.to_dict() for _, row in fleet_df.iterrows()]
@@ -49,19 +45,21 @@ class TramConnectDataGenerator(Config):
             exit(1)
 
         employees_file = f'pracownicy_{snapshot}.csv'
+
         try:
             employees_df = pd.read_csv(employees_file)
             drivers_df = employees_df[employees_df['Stanowisko'] == 'Kierowca']
             self.drivers_data = [row.to_dict() for _, row in drivers_df.iterrows()]
             self.driver_availability = {driver['ID_Pracownika']: datetime.min for driver in self.drivers_data}
-            print(f"Wczytano {len(self.drivers_data)} kierowców z {employees_file}")
+            print(f"Wczytano {len(self.drivers_data)} kierowcow z {employees_file}")
         except FileNotFoundError:
             print(f"Nie znaleziono pliku {employees_file}")
             exit(1)
 
     def generate_stops(self):
-        """Generuje dane przystanków"""
-        self.stops_data = [] # Czyścimy listę
+        """Generuje dane przystankow"""
+
+        self.stops_data = []
         for i in range(1, len(self.STOPS) + 1):
             self.stops_data.append({
                 'id_przystanku': i,
@@ -70,16 +68,19 @@ class TramConnectDataGenerator(Config):
     
     def generate_lines(self):
         """Generuje dane linii"""
-        self.lines_data = [] # Czyścimy listę
+
+        self.lines_data = []
         for i in range(1, len(self.LINES) + 1):
             self.lines_data.append({
                 'id_linii': i,
                 'nazwa_linii': self.LINES[i-1]
             })
     
-    def generate_stop_segment(self):
-        """Generuje połączenia między przystankami"""
-        self.stop_segment_data = [] # Czyścimy listę
+    def generate_stop_segment(self):                
+        """Generuje polaczenia miedzy przystankami"""
+
+        self.stop_segment_data = [] 
+
         segment_id = 1
         for i in range(1, len(self.STOPS)):
             for j in range(i + 1, min(i + 4, len(self.STOPS) + 1)):
@@ -92,9 +93,9 @@ class TramConnectDataGenerator(Config):
     
     def _generate_course_batch(self, start_id, count, start_date, end_date):
         """
-        Generuje 'count' kursów, zaczynając od 'start_id', 
-        w zakresie dat, sprawdzając dostępność tramwajów i kierowców.
-        Zwraca listę nowo wygenerowanych kursów.
+        Generuje 'count' kursow, zaczynajac od 'start_id', 
+        w zakresie dat, sprawdzajac dostepnosc tramwajow i kierowcow.
+        Zwraca liste nowo wygenerowanych kursow.
         """
         
         new_courses = []
@@ -102,7 +103,8 @@ class TramConnectDataGenerator(Config):
         current_id = start_id
         current_date = start_date
         attempts = 0
-        # Zabezpieczenie przed nieskończoną pętlą (zwiększone dla większej liczby kursów)
+
+        # Zabezpieczenie przed nieskonczona petla (zwiekszone dla wiekszej liczby kursow)
         max_attempts = max(count * 100, 5000000) 
         
         days_in_period = (end_date - start_date).days
@@ -111,9 +113,9 @@ class TramConnectDataGenerator(Config):
             
         courses_per_day_approx = count / days_in_period
         
-        # Jeśli prób jest więcej niż ~połowa kursów na dzień, przejdź do następnego dnia
+        # Jesli prob jest wiecej niz ~polowa kursow na dzien, przejdz do nastepnego dnia
         attempts_per_day_limit = max(10, int(courses_per_day_approx / 2)) 
-        if attempts_per_day_limit == 0: attempts_per_day_limit = 1 # Unikaj dzielenia przez zero
+        if attempts_per_day_limit == 0: attempts_per_day_limit = 1 # brak dzielenia przez zero
 
         while generated_count < count and attempts < max_attempts:
             attempts += 1
@@ -122,11 +124,11 @@ class TramConnectDataGenerator(Config):
             minute = random.randint(0, 59)
             oczek_start = datetime.combine(current_date, time(hour, minute))
             
-            # Przesuń datę do przodu
+            # Przesuniecie daty do przodu
             if attempts % attempts_per_day_limit == 0:
                  current_date += timedelta(days=1)
                  if current_date > end_date:
-                     current_date = start_date # Wróć na początek
+                     current_date = start_date # Na poczatek
 
             duration = timedelta(minutes=random.randint(30, 120))
             oczek_end = oczek_start + duration
@@ -134,24 +136,24 @@ class TramConnectDataGenerator(Config):
             real_start = oczek_start
             real_end = oczek_end
             
-            # 10% szans na opóźniony start
+            # 10% szans na opozniony start
             if random.random() < 0.10:
                 start_delay = timedelta(minutes=random.randint(1, 10))
                 real_start = oczek_start + start_delay
             
-            # 15% szans na opóźnienie na końcu (niezależne od startu)
+            # 15% szans na opoznienie na koncu (niezalezne od startu)
             if random.random() < 0.15:
                 end_delay = timedelta(minutes=random.randint(1, 20))
                 real_end = oczek_end + end_delay
             
-            # Upewnij się, że realny koniec jest po realnym starcie
+            # Upewniamy sie ze realny koniec jest po realnym starcie
             if real_end < real_start:
                 real_end = real_start + duration 
             
-            # --- Sprawdzanie dostępności ---
+            # Sprawdzanie dostępnosci
             available_trams = [tid for tid, end_time in self.tram_availability.items() if end_time <= oczek_start]
             if not available_trams:
-                continue # Nie ma tramwaju, spróbuj o innej godzinie
+                continue # Nie ma tramwaju, sprobuj o innej godzinie
 
             tram_id = random.choice(available_trams)
             
@@ -161,9 +163,14 @@ class TramConnectDataGenerator(Config):
                 
             driver_id = random.choice(available_drivers)
             
-            # --- Rezerwacja zasobów ---
-            self.tram_availability[tram_id] = real_end + timedelta(minutes=10) # Bufor na sprzątanie
-            self.driver_availability[driver_id] = real_end + timedelta(minutes=30) # Bufor na przerwę
+            # Rezerwacja zasobow
+            self.tram_availability[tram_id] = real_end + timedelta(minutes=10) # "Bufor na sprzatanie"
+            self.driver_availability[driver_id] = real_end + timedelta(minutes=30) # "Bufor na przerwe"
+            
+            oczek_start = oczek_start.replace(microsecond=0)
+            oczek_end = oczek_end.replace(microsecond=0)
+            real_start = real_start.replace(microsecond=0)
+            real_end = real_end.replace(microsecond=0)
             
             new_course_data = {
                 'id_kursu': current_id,
@@ -177,13 +184,13 @@ class TramConnectDataGenerator(Config):
             }
             
             new_courses.append(new_course_data)
-            self.courses_data.append(new_course_data) # Dodajemy do głównej listy
+            self.courses_data.append(new_course_data) # Dodajemy do glownej listy
             
             generated_count += 1
             current_id += 1
 
         if generated_count < count:
-            print(f"OSTRZEŻENIE: Wygenerowano tylko {generated_count} z {count} kursów (na {max_attempts} prób). Może brakować zasobów (tramwajów/kierowców).")
+            print(f"OSTRZEŻENIE: Wygenerowano tylko {generated_count} z {count} kursow (na {max_attempts} prob). Moze brakowac zasobow (tramwajow/kierowcow).")
         
         return new_courses # Zwracamy tylko nowe kursy
 
@@ -193,9 +200,8 @@ class TramConnectDataGenerator(Config):
         self.load_existing_data('T1') 
         
         start_date = self.DATE_T1
-        end_date = self.DATE_T2 - timedelta(days=1) # T1 trwa do dnia przed T2
+        end_date = self.DATE_T1 + timedelta(days=365 * 2)             # self.DATE_T2 - timedelta(days=1) # T1 trwa do dnia przed T2
         
-        # Używamy COURSES_COUNT z Twojego pliku config.py
         courses_count = self.COURSES_COUNT 
         
         print(f"Generowanie {courses_count} kursów dla T1 (Zakres: {start_date.date()} do {end_date.date()})...")
@@ -213,23 +219,23 @@ class TramConnectDataGenerator(Config):
         new_segments = [] # Lista na nowe segmenty
         
         try:
-            # Upewnij się, że dane są obiektami datetime
+            # Upewniamy sie ze dane sa obiektami datetime
             oczek_start = course['oczek_czas_rozp'] if isinstance(course['oczek_czas_rozp'], datetime) else datetime.fromisoformat(str(course['oczek_czas_rozp']))
             oczek_end = course['oczek_czas_zak'] if isinstance(course['oczek_czas_zak'], datetime) else datetime.fromisoformat(str(course['oczek_czas_zak']))
             real_start = course['real_czas_rozp'] if isinstance(course['real_czas_rozp'], datetime) else datetime.fromisoformat(str(course['real_czas_rozp']))
             real_end = course['real_czas_zak'] if isinstance(course['real_czas_zak'], datetime) else datetime.fromisoformat(str(course['real_czas_zak']))
         except Exception as e:
-            print(f"Błąd konwersji czasu dla kursu {course['id_kursu']}: {e}")
+            print(f"Blad konwersji czasu dla kursu {course['id_kursu']}: {e}")
             return []
 
         total_oczek_duration = oczek_end - oczek_start
         total_real_duration = real_end - real_start
 
         if total_oczek_duration <= timedelta(0) or segments_count == 0:
-             print(f"Pominięto generowanie odcinków dla kursu {course['id_kursu']} (nieprawidłowy czas oczekiwany).")
+             print(f"Pominieto generowanie odcinkow dla kursu {course['id_kursu']} (nieprawidlowy czas oczekiwany).")
              return []
         
-        # Jeśli realny czas jest zły, użyj oczekiwanego
+        # Jesli realny czas jest zly, uzyj oczekiwanego
         if total_real_duration <= timedelta(0):
             real_start = oczek_start
             real_end = oczek_end
@@ -245,11 +251,11 @@ class TramConnectDataGenerator(Config):
             oczek_seg_start = current_oczek_time
             real_seg_start = current_real_time
             
-            oczek_seg_end = oczek_end # Domyślnie dla ostatniego
-            real_seg_end = real_end # Domyślnie dla ostatniego
+            oczek_seg_end = oczek_end # Domyslnie dla ostatniego
+            real_seg_end = real_end # Domyslnie dla ostatniego
 
             if segment_num < segments_count - 1:
-                # Losowość czasu trwania odcinka
+                # Losowosc czasu trwania odcinka
                 rand_factor = random.uniform(0.8, 1.2)
                 oczek_seg_duration = max(timedelta(minutes=1), avg_oczek_duration * rand_factor)
                 real_seg_duration = max(timedelta(minutes=1), avg_real_duration * rand_factor)
@@ -257,7 +263,7 @@ class TramConnectDataGenerator(Config):
                 oczek_seg_end = current_oczek_time + oczek_seg_duration
                 real_seg_end = current_real_time + real_seg_duration
                 
-                # Zabezpieczenie przed przekroczeniem czasu całkowitego
+                # Zabezpieczenie przed przekroczeniem czasu calkowitego
                 oczek_seg_end = min(oczek_seg_end, oczek_end - timedelta(minutes=(segments_count - 1 - segment_num)))
                 real_seg_end = min(real_seg_end, real_end - timedelta(minutes=(segments_count - 1 - segment_num)))
 
@@ -273,24 +279,24 @@ class TramConnectDataGenerator(Config):
             }
             
             new_segments.append(segment_data)
-            self.segments_data.append(segment_data) # Dodajemy do głównej listy
+            self.segments_data.append(segment_data) # Dodajemy do glownej listy
             
-            # Czas startu następnego odcinka = czas końca bieżącego
+            # Czas startu nastepnego odcinka = czas konca biezacego
             current_oczek_time = oczek_seg_end
             current_real_time = real_seg_end
         
         return new_segments # Zwracamy wygenerowane segmenty
 
     def generate_t1_segments(self):
-        """Generuje dane odcinków dla T1"""
+        """Generuje dane odcinkow dla T1"""
         
-        print(f"Generowanie odcinków dla {len(self.courses_data)} kursów T1...")
+        print(f"Generowanie odcinkow dla {len(self.courses_data)} kursow T1...")
         for course in self.courses_data:
             self._generate_segments_for_course(course)
-        print(f"Wygenerowano łącznie {len(self.segments_data)} odcinków dla T1.")
+        print(f"Wygenerowano lacznie {len(self.segments_data)} odcinkow dla T1.")
 
     def save_to_bulk(self, snapshot='T1'):
-        """Zapisuje dane w formacie BULK do ładowania do SQL"""
+        """Zapisuje dane w formacie BULK"""
         
         # Zapisuj dane wymiarów (przystanki, linie) tylko dla T1
         # Zakładamy, że T2 używa tych samych wymiarów co T1
@@ -298,7 +304,7 @@ class TramConnectDataGenerator(Config):
             with open(f'przystanki_{snapshot}.bulk', 'w', encoding='utf-8') as f:
                 for stop in self.stops_data:
                     f.write(f"{stop['id_przystanku']}|{stop['nazwa']}\n")
-            print(f"Zapisano {len(self.stops_data)} przystanków do przystanki_{snapshot}.bulk")
+            print(f"Zapisano {len(self.stops_data)} przystankow do przystanki_{snapshot}.bulk")
 
             with open(f'linie_{snapshot}.bulk', 'w', encoding='utf-8') as f:
                 for line in self.lines_data:
@@ -308,48 +314,45 @@ class TramConnectDataGenerator(Config):
             with open(f'przystanek_odcinek_{snapshot}.bulk', 'w', encoding='utf-8') as f:
                 for segment in self.stop_segment_data:
                     f.write(f"{segment['id_przystanek_odcinek']}|{segment['przystanek_pocz']}|{segment['przystanek_kon']}\n")
-            print(f"Zapisano {len(self.stop_segment_data)} połączeń do przystanek_odcinek_{snapshot}.bulk")
+            print(f"Zapisano {len(self.stop_segment_data)} polaczen do przystanek_odcinek_{snapshot}.bulk")
         
         # Dane transakcyjne (kursy, odcinki) zapisuj zawsze dla danego snapshotu
         with open(f'kursy_{snapshot}.bulk', 'w', encoding='utf-8') as f:
             for course in self.courses_data:
                 f.write(f"{course['id_kursu']}|{course['id_linii']}|{course['id_tramwaju']}|{course['id_kierowcy']}|"
                         f"{course['oczek_czas_rozp']}|{course['oczek_czas_zak']}|{course['real_czas_rozp']}|{course['real_czas_zak']}\n")
-        print(f"Zapisano {len(self.courses_data)} kursów do kursy_{snapshot}.bulk")
+        print(f"Zapisano {len(self.courses_data)} kursow do kursy_{snapshot}.bulk")
 
         with open(f'odcinki_{snapshot}.bulk', 'w', encoding='utf-8') as f:
             for segment in self.segments_data:
                 f.write(f"{segment['id_kursu']}|{segment['id_przystanek_odcinek']}|{segment['numer_odcinka']}|"
                         f"{segment['oczek_czas_odj']}|{segment['oczek_czas_przyj']}|{segment['real_czas_odj']}|"
                         f"{segment['real_czas_przyj']}|{segment['liczba_pas']}\n")
-        print(f"Zapisano {len(self.segments_data)} odcinków do odcinki_{snapshot}.bulk")
-    
-    # --- LOGIKA T1 vs T2 ---
+        print(f"Zapisano {len(self.segments_data)} odcinkow do odcinki_{snapshot}.bulk")
     
     def _generate_t1_data(self):
         """Wykonuje pełne generowanie danych dla T1"""
         
-        # 1. Resetowanie danych transakcyjnych
         self.courses_data = []
         self.segments_data = []
         
-        # 2. Generowanie wymiarów
         self.generate_stops()
         self.generate_lines()
         self.generate_stop_segment()
-        print(f"Wygenerowano {len(self.stops_data)} przystanków, {len(self.lines_data)} linii, {len(self.stop_segment_data)} połączeń")
+        print(f"Wygenerowano {len(self.stops_data)} przystankow, {len(self.lines_data)} linii, {len(self.stop_segment_data)} polaczen")
         
-        # 3. Generowanie faktów (transakcji)
         self.generate_t1_courses()
         self.generate_t1_segments()
 
     def _load_t1_data(self):
-        """Wczytuje pliki .bulk T1 do pamięci"""
-        print("Wczytywanie danych T1 z plików .bulk...")
+        """Wczytuje pliki .bulk T1 do pamieci"""
+
+        print("Wczytywanie danych T1 z plikow .bulk...")
         
         try:
-            # Wczytywanie wymiarów (potrzebne do generowania nowych odcinków w T2)
-            print("Wczytywanie wymiarów T1...")
+
+            # Wczytywanie wymiarow (potrzebne do generowania nowych odcinkow w T2)
+            print("Wczytywanie wymiarow T1...")
             stops_df = pd.read_csv(
                 'przystanki_T1.bulk', sep='|', names=['id_przystanku', 'nazwa'], header=None
             )
@@ -366,10 +369,10 @@ class TramConnectDataGenerator(Config):
             )
             self.stop_segment_data = stop_segment_df.to_dict('records')
             
-            print(f"Wczytano {len(self.stops_data)} przystanków, {len(self.lines_data)} linii, {len(self.stop_segment_data)} połączeń.")
+            print(f"Wczytano {len(self.stops_data)} przystankow, {len(self.lines_data)} linii, {len(self.stop_segment_data)} polaczen.")
 
-            # Wczytywanie faktów (do modyfikacji)
-            print("Wczytywanie faktów T1 (kursy i odcinki)...")
+            # Wczytywanie faktow (do modyfikacji)
+            print("Wczytywanie faktow T1 (kursy i odcinki)...")
             course_cols = ['id_kursu', 'id_linii', 'id_tramwaju', 'id_kierowcy', 'oczek_czas_rozp', 'oczek_czas_zak', 'real_czas_rozp', 'real_czas_zak']
             date_cols = ['oczek_czas_rozp', 'oczek_czas_zak', 'real_czas_rozp', 'real_czas_zak']
             
@@ -388,15 +391,15 @@ class TramConnectDataGenerator(Config):
             return courses_df, segments_df
 
         except FileNotFoundError as e:
-            print(f"BŁĄD: Nie znaleziono pliku .bulk T1: {e.filename}")
-            print("Nie można wygenerować T2 bez danych T1. Uruchom najpierw generowanie T1.")
+            print(f"Nie znaleziono pliku .bulk T1: {e.filename}")
             exit(1)
         except Exception as e:
-            print(f"BŁĄD podczas wczytywania plików T1: {e}")
+            print(f"Blad podczas wczytywania plikow T1: {e}")
             exit(1)
 
     def _modify_t1_data_for_t2(self, courses_df, segments_df):
-        """Modyfikuje wczytane dane T1 zgodnie z logiką T2"""
+        """Modyfikuje wczytane dane T1 zgodnie z logika T2"""
+
         print("Modyfikowanie danych T1 na potrzeby T2...")
         
         # Modyfikacja 1: Zwiększamy opóźnienia kursów (większe/częstsze)
@@ -462,7 +465,7 @@ class TramConnectDataGenerator(Config):
                 self.driver_availability[driver_id] = max(self.driver_availability[driver_id], real_end_time + timedelta(minutes=30))
         
         # 6. Generuj NOWE 50 tys. kursów dla T2
-        new_courses_count = 50000 
+        new_courses_count = self.T2_COURSES_COUNT 
         start_date_t2 = self.DATE_T2
         end_date_t2 = self.DATE_T2 + timedelta(days=29) # Zakres T2 (np. luty)
         
@@ -495,16 +498,16 @@ class TramConnectDataGenerator(Config):
     def generate_all(self, snapshot="T1"):
         """Główna metoda generująca dane"""
 
-        print(f"--- GENEROWANIE DANYCH TramConnect: {snapshot} ---")
+        print(f"\n\n\n>>> GENEROWANIE DANYCH TramConnect <<<")
         
+        print(f"Generator skonfigurowany: T1 start = {self.DATE_T1.date()}, T2 start = {self.DATE_T2.date()}")
+
+        print(f"Rozpoczynanie generowania snapszotu {snapshot}...")
+
         if snapshot == 'T1':
-            print(f"Rozpoczynanie generowania snapszotu {snapshot}...")
             self._generate_t1_data()
-            
         elif snapshot == 'T2':
-            print(f"Rozpoczynanie generowania snapszotu {snapshot} (na podstawie T1)...")
             self._generate_t2_data()
-            
         else:
             print(f"Nieznany snapshot: {snapshot}")
             return
@@ -512,6 +515,4 @@ class TramConnectDataGenerator(Config):
         # 9. Zapisz wszystkie dane do plików .bulk
         print(f"Zapisywanie danych do plików .bulk dla {snapshot}...")
         self.save_to_bulk(snapshot)
-        
-        print(f"--- Generowanie danych TramConnect ({snapshot}) ZAKOŃCZONE ---")
         

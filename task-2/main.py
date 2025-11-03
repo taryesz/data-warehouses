@@ -19,6 +19,8 @@ def main():
 
     # ====================== T2 ======================
 
+    print('\n\n\nT2 ==================================================== \n\n\n')
+
     employees_data_generator.generate_all("T2")
 
     fleet_data_generator.generate_all("T2")
