@@ -16,12 +16,43 @@ class Config:
         'Szpital Miejski', 
         'Uniwersytet', 
         'Galeria Handlowa', 
-        'Zajezdnia', 'Lotnisko',
+        'Zajezdnia', 
+        'Lotnisko',
         'Stadion Miejski', 
         'Teatr Wielki', 
         'Muzeum Narodowe',
         'Park Miejski', 
-        'Biblioteka'
+        'Biblioteka',
+        'Nowe Ogrody',
+        'Plac Konstytucji',
+        'Cmentarz Komunalny',
+        'Osiedle Leśne',
+        'Most Północny',
+        'Targowisko',
+        'Fabryka',
+        'Dworzec Zachodni',
+        'Kamienice',
+        'Plac Słowiański',
+        'Osiedle Południe',
+        'Szkoła Techniczna',
+        'Rondo Solidarności',
+        'Rektorat',
+        'Port Miejski',
+        'Nowy Rynek',
+        'Plac Grunwaldzki',
+        'Osiedle Kolejowe',
+        'Aleja Lipowa',
+        'Dworzec Wschodni',
+        'Szpital Wojewódzki',
+        'Park Technologiczny',
+        'Kampus Zachodni',
+        'Osiedle Kwiatowe',
+        'Plac Targowy',
+        'Hala Widowiskowa',
+        'Most Południowy',
+        'Zamek',
+        'Osiedle Energetyków',
+        'Plac Niepodległości'
     ]
     
     LINES = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
@@ -62,9 +93,9 @@ class Config:
     TRAM_COUNT = 50
     EVENTS_COUNT = 1000
 
-    STOPS_COUNT = 15
+    STOPS_COUNT = len(STOPS)
     LINES_COUNT = 12
-    # COURSE_COUNT_T1 = 50000   # 50k dla T1
+    COURSE_COUNT_T1 = 10000   # 1mln dla T1
     # COURSE_COUNT_T2 = 100000  # 100k dla T2 (T1 + 50k nowych)
     
     # Daty snapszotow
@@ -73,6 +104,7 @@ class Config:
     
     def random_date(self, start_date, end_date):
         """Generuje losowa date w podanym zakresie"""
+
         delta = end_date - start_date
         random_days = random.randint(0, delta.days)
         random_seconds = random.randint(0, 86400)

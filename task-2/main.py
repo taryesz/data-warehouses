@@ -5,9 +5,6 @@ from generate_employees_data import EmployeesDataGenerator
 
 def main():
     
-    # tram_connect_data_generator = TramConnectDataGenerator()
-    # tram_connect_data_generator.generate_all()
-    
     employees_data_generator = EmployeesDataGenerator()
     employees_data_generator.generate_all()
 
@@ -17,13 +14,18 @@ def main():
     events_data_generator = EventsDataGenerator()
     events_data_generator.generate_all()
 
+    tram_connect_data_generator = TramConnectDataGenerator()
+    tram_connect_data_generator.generate_all()
+
     # ====================== T2 ======================
 
-    employees_data_generator.generate_all("T2")
+    # employees_data_generator.generate_all("T2")
 
-    fleet_data_generator.generate_all("T2")
+    # fleet_data_generator.generate_all("T2")
 
-    events_data_generator.generate_all("T2")
+    # events_data_generator.generate_all("T2")
+
+    # tram_connect_data_generator.generate_all("T2")
     
 if __name__ == "__main__":
     main()
