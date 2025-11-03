@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+import os
 from datetime import datetime
 from config import Config
 from mimesis import Person, Generic
@@ -16,7 +17,7 @@ class EmployeesDataGenerator(Config):
         self.generic = Generic(locale=Locale.PL)
     
     def generate_personal_data(self, count):
-        """Generuje dane pracownikow używajac Nemesis API"""
+        """Generuje dane pracownikow używajac Mimesis"""
 
         employees = []
         
@@ -60,20 +61,20 @@ class EmployeesDataGenerator(Config):
     def generate_employees_data(self, snapshot='T1'):
         """Generuje kompletne dane pracownikow"""
         
+        # Dla snapszotu T2 sprawdzamy czy istnieje plik T1
+        if snapshot == 'T2':
+
+            t1_filename = 'pracownicy_T1.csv'
+
+            if os.path.exists(t1_filename):
+                print(f"Znaleziono plik {t1_filename}, tworzenie T2 na podstawie T1...")
+                self.generate_t2_from_t1(t1_filename)
+                return
+        
         base_employees = self.generate_personal_data(self.EMPLOYEES_COUNT)
         
         for i, base_emp in enumerate(base_employees, 1):
 
-            hired_date = self.random_date(datetime(2010, 1, 1), datetime(2023, 12, 31))
-            
-            # W T2 niektore dane sie zmieniaja (awanse)
-            if snapshot == 'T2' and i <= 10:
-                job_title = 'Kierownik' if random.random() > 0.5 else f"Starszy {random.choice(self.JOB_TITLES)}"
-            else:
-                job_title = random.choice(self.JOB_TITLES)
-
-            education = random.choice(self.EDUCATION)
-            
             self.employees_data.append({
                 'ID_Pracownika': i,
                 'Imię': base_emp['first_name'],
@@ -82,10 +83,65 @@ class EmployeesDataGenerator(Config):
                 'Data_Urodzenia': base_emp['birth_date'].strftime('%Y-%m-%d'),
                 'Płeć': "M" if base_emp['gender'] == Gender.MALE else "K",
                 'PESEL': base_emp['pesel'],
-                'Data_Zatrudnienia': hired_date.strftime('%Y-%m-%d'),
-                'Stanowisko': job_title,
-                'Wykształcenie_Zawód': education,
+                'Data_Zatrudnienia': self.random_date(datetime(2010, 1, 1), datetime(2023, 12, 31)).strftime('%Y-%m-%d'),
+                'Stanowisko': random.choice(self.JOB_TITLES),
+                'Wykształcenie_Zawód': random.choice(self.EDUCATION),
             })
+    
+    def generate_t2_from_t1(self, t1_filename):
+        """Generuje dane T2 na podstawie istniejacego pliku T1"""
+
+        try:
+
+            t1_df = pd.read_csv(t1_filename)
+            
+            # Ostatni na liscie ID pracownika
+            max_t1_id = t1_df['ID_Pracownika'].max()
+
+            # Modyfikujemy istniejacych pracownikow z T1
+            for index, row in t1_df.iterrows():
+
+                employee_data = row.to_dict()
+                
+                # 10 pierwszych pracownikow otrzymuje awans
+                if index < 10:  
+                    current_position = employee_data['Stanowisko']
+                    if current_position != 'Kierownik':
+
+                        # Awans na Kierownika lub Starszego [stanowisko]
+                        if random.random() > 0.5:
+                            employee_data['Stanowisko'] = 'Kierownik'
+                        else:
+                            employee_data['Stanowisko'] = f"Starszy {current_position}"
+                
+                self.employees_data.append(employee_data)
+            
+            print(f"Zmodyfikowano {len(t1_df)} istniejacych pracownikow z T1")
+
+            # Dodajemy NOWYCH pracownikow
+            base_new_employees = self.generate_personal_data(self.EMPLOYEES_COUNT)
+            
+            for i, base_emp in enumerate(base_new_employees, max_t1_id + 1):
+
+                self.employees_data.append({
+                    'ID_Pracownika': i,
+                    'Imię': base_emp['first_name'],
+                    'Drugie_Imię': base_emp['middle_name'],
+                    'Nazwisko': base_emp['last_name'],
+                    'Data_Urodzenia': base_emp['birth_date'].strftime('%Y-%m-%d'),
+                    'Płeć': "M" if base_emp['gender'] == Gender.MALE else "K",
+                    'PESEL': base_emp['pesel'],
+                    'Data_Zatrudnienia': self.random_date(datetime(2010, 1, 1), datetime(2023, 12, 31)).strftime('%Y-%m-%d'),
+                    'Stanowisko': random.choice(self.JOB_TITLES),
+                    'Wykształcenie_Zawód': random.choice(self.EDUCATION),
+                })
+            
+            print(f"Dodano {self.EMPLOYEES_COUNT} nowych pracownikow")
+            print(f"Razem w T2: {len(self.employees_data)} pracownikow")
+
+        except Exception as e:
+            print(f"Blad podczas wczytywania pliku {t1_filename}: {e}")
+            exit(1)
     
     def save_to_csv(self, snapshot='T1'):
         """Zapisuje dane pracownikow do CSV"""
@@ -95,21 +151,16 @@ class EmployeesDataGenerator(Config):
         pd.DataFrame(self.employees_data).to_csv(filename, index=False, encoding='utf-8')
         print(f"Zapisano {len(self.employees_data)} pracownikow do {filename}")
        
-    def generate_all(self):
-        """Generuje dane pracownikow dla obu snapszotow"""
+    def generate_all(self, snapshot="T1"):
+        """Generuje dane pracownikow"""
 
         print(">>> GENEROWANIE DANYCH PRACOWNIKOW <<<")
         
-        print("Generowanie snapszotu T1...")
+        print(f"Generowanie snapszotu {snapshot}...")
 
-        self.generate_employees_data('T1')
-        self.save_to_csv('T1')
+        self.employees_data = []
         
-        self.employees_data = []    # Czyscimy dane przed generowaniem T2
-        
-        print("Generowanie snapszotu T2...")
-
-        self.generate_employees_data('T2')
-        self.save_to_csv('T2')
+        self.generate_employees_data(snapshot)
+        self.save_to_csv(snapshot)
         
         print("Generowanie danych pracownikow zakonczone.")
