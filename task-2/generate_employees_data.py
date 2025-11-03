@@ -82,7 +82,7 @@ class EmployeesDataGenerator(Config):
                 'Drugie_Imię': base_emp['middle_name'],
                 'Nazwisko': base_emp['last_name'],
                 'Data_Urodzenia': base_emp['birth_date'].strftime('%Y-%m-%d'),
-                'Płeć': base_emp['gender'],
+                'Płeć': "M" if base_emp['gender'] == Gender.MALE else "K",
                 'PESEL': base_emp['pesel'],
                 'Data_Zatrudnienia': hired_date.strftime('%Y-%m-%d'),
                 'Stanowisko': job_title,
