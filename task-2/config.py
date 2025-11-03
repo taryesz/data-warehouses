@@ -94,20 +94,20 @@ class Config:
     ]
     
     # Ustawienia generatora
-    EMPLOYEES_COUNT = 350
+    EMPLOYEES_COUNT = 700
     T2_EMPLOYEES_COUNT = 100
 
-    TRAMS_COUNT = 200
+    TRAMS_COUNT = 300
     T2_TRAMS_COUNT = 25
 
     EVENTS_COUNT = 1000
     T2_EVENTS_COUNT = 250
 
-    EVENT_TRACKING_START = datetime(2024, 1, 1)
+    EVENT_TRACKING_START = datetime(2025, 3, 1)
 
     STOPS_COUNT = len(STOPS)
     LINES_COUNT = len(LINES)
     
-    COURSES_COUNT = 1000000   # 1mln 
+    COURSES_COUNT = 200000   # 1mln 
     T2_COURSES_COUNT = 100000
     

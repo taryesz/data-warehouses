@@ -114,7 +114,7 @@ class TramConnectDataGenerator(Config):
         courses_per_day_approx = count / days_in_period
         
         # Jesli prob jest wiecej niz ~polowa kursow na dzien, przejdz do nastepnego dnia
-        attempts_per_day_limit = max(10, int(courses_per_day_approx / 2)) 
+        attempts_per_day_limit = 1000
         if attempts_per_day_limit == 0: attempts_per_day_limit = 1 # brak dzielenia przez zero
 
         while generated_count < count and attempts < max_attempts:
@@ -125,12 +125,12 @@ class TramConnectDataGenerator(Config):
             oczek_start = datetime.combine(current_date, time(hour, minute))
             
             # Przesuniecie daty do przodu
-            if attempts % attempts_per_day_limit == 0:
+            if attempts % attempts_per_day_limit == 0 and attempts > 0:
                  current_date += timedelta(days=1)
                  if current_date > end_date:
                      current_date = start_date # Na poczatek
 
-            duration = timedelta(minutes=random.randint(30, 120))
+            duration = timedelta(minutes=random.randint(15, 120))
             oczek_end = oczek_start + duration
             
             real_start = oczek_start
@@ -164,8 +164,8 @@ class TramConnectDataGenerator(Config):
             driver_id = random.choice(available_drivers)
             
             # Rezerwacja zasobow
-            self.tram_availability[tram_id] = real_end + timedelta(minutes=10) # "Bufor na sprzatanie"
-            self.driver_availability[driver_id] = real_end + timedelta(minutes=30) # "Bufor na przerwe"
+            self.tram_availability[tram_id] = real_end + timedelta(minutes=5) # "Bufor na sprzatanie"
+            self.driver_availability[driver_id] = real_end + timedelta(minutes=10) # "Bufor na przerwe"
             
             oczek_start = oczek_start.replace(microsecond=0)
             oczek_end = oczek_end.replace(microsecond=0)
@@ -189,6 +189,9 @@ class TramConnectDataGenerator(Config):
             generated_count += 1
             current_id += 1
 
+            if generated_count % 10000 == 0:
+                print(f"Wygenerowano {generated_count}/{count} kursow...")
+
         if generated_count < count:
             print(f"OSTRZEŻENIE: Wygenerowano tylko {generated_count} z {count} kursow (na {max_attempts} prob). Moze brakowac zasobow (tramwajow/kierowcow).")
         
@@ -200,7 +203,7 @@ class TramConnectDataGenerator(Config):
         self.load_existing_data('T1') 
         
         start_date = self.DATE_T1
-        end_date = self.DATE_T1 + timedelta(days=365 * 2)             # self.DATE_T2 - timedelta(days=1) # T1 trwa do dnia przed T2
+        end_date = self.DATE_T1 + timedelta(days=365 * 3)             # self.DATE_T2 - timedelta(days=1) # T1 trwa do dnia przed T2
         
         courses_count = self.COURSES_COUNT 
         
@@ -267,14 +270,17 @@ class TramConnectDataGenerator(Config):
                 oczek_seg_end = min(oczek_seg_end, oczek_end - timedelta(minutes=(segments_count - 1 - segment_num)))
                 real_seg_end = min(real_seg_end, real_end - timedelta(minutes=(segments_count - 1 - segment_num)))
 
+            # Helper to format datetimes the same way as in kursy_XX.bulk
+            fmt = (lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S') if hasattr(dt, 'strftime') else str(dt))
+
             segment_data = {
                 'id_kursu': course['id_kursu'],
                 'id_przystanek_odcinek': random.randint(1, len(self.stop_segment_data)),
                 'numer_odcinka': segment_num + 1,
-                'oczek_czas_odj': oczek_seg_start,
-                'oczek_czas_przyj': oczek_seg_end,
-                'real_czas_odj': real_seg_start,
-                'real_czas_przyj': real_seg_end,
+                'oczek_czas_odj': fmt(oczek_seg_start),
+                'oczek_czas_przyj': fmt(oczek_seg_end),
+                'real_czas_odj': fmt(real_seg_start),
+                'real_czas_przyj': fmt(real_seg_end),
                 'liczba_pas': random.randint(0, 150)
             }
             
@@ -467,7 +473,7 @@ class TramConnectDataGenerator(Config):
         # 6. Generuj NOWE 50 tys. kursów dla T2
         new_courses_count = self.T2_COURSES_COUNT 
         start_date_t2 = self.DATE_T2
-        end_date_t2 = self.DATE_T2 + timedelta(days=29) # Zakres T2 (np. luty)
+        end_date_t2 = self.DATE_T2 + timedelta(days=365) # Zakres T2 (np. luty)
         
         print(f"Generowanie {new_courses_count} nowych kursów dla T2 (Zakres: {start_date_t2.date()} do {end_date_t2.date()})...")
         
