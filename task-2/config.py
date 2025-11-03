@@ -36,6 +36,7 @@ class Config:
             ]
     
     # Ustawienia generatora
+    EMPLOYEES_COUNT = 200
     TRAM_COUNT = 50
     DRIVER_COUNT = 100
     STOPS_COUNT = 15

@@ -1,6 +1,6 @@
 import pandas as pd
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from config import Config
 from mimesis import Person, Generic
 from mimesis.locales import Locale
@@ -59,10 +59,8 @@ class EmployeesDataGenerator(Config):
     
     def generate_employees_data(self, snapshot='T1'):
         """Generuje kompletne dane pracownikow"""
-
-        employees_count = 200
         
-        base_employees = self.generate_personal_data(employees_count)
+        base_employees = self.generate_personal_data(self.EMPLOYEES_COUNT)
         
         for i, base_emp in enumerate(base_employees, 1):
 
@@ -115,7 +113,3 @@ class EmployeesDataGenerator(Config):
         self.save_to_csv('T2')
         
         print("Generowanie danych pracownikow zakonczone.")
-
-if __name__ == "__main__":
-    employees = EmployeesDataGenerator()
-    employees.generate()
