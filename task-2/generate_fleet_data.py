@@ -24,7 +24,7 @@ class FleetDataGenerator(Config):
                 self.generate_t2_from_t1(t1_filename)
                 return
         
-        for i in range(1, self.TRAM_COUNT + 1):
+        for i in range(1, self.TRAMS_COUNT + 1):
             self.fleet_data.append({
                 'Numer_Boczny': i,
                 'Marka': random.choice(self.TRAM_BRANDS),
@@ -62,7 +62,7 @@ class FleetDataGenerator(Config):
             print(f"Zmodyfikowano {len(t1_df)} istniejacych tramwajow z T1")
 
             # Dodajemy NOWE tramwaje
-            for i in range(max_t1_number + 1, max_t1_number + self.TRAM_COUNT + 1):
+            for i in range(max_t1_number + 1, max_t1_number + self.T2_TRAMS_COUNT + 1):
                 self.fleet_data.append({
                     'Numer_Boczny': i,
                     'Marka': random.choice(self.TRAM_BRANDS),
@@ -78,7 +78,7 @@ class FleetDataGenerator(Config):
                     'Czy_Sprawny': random.random() > 0.1  # 90% sprawnych
                 })
             
-            print(f"Dodano {self.TRAM_COUNT} nowych tramwajow")
+            print(f"Dodano {self.TRAMS_COUNT} nowych tramwajow")
             print(f"Razem w T2: {len(self.fleet_data)} tramwajow")
 
         except Exception as e:
@@ -93,6 +93,32 @@ class FleetDataGenerator(Config):
         pd.DataFrame(self.fleet_data).to_csv(filename, index=False)
         print(f"Zapisano {len(self.fleet_data)} tramwajow do {filename}")
     
+    def save_to_bulk(self, snapshot='T1'):
+        """Zapisuje dane floty tramwajowej do BULK"""
+    
+        filename = f'flota_tramwajowa_{snapshot}.bulk'
+        
+        with open(filename, 'w', encoding='utf-8') as f:
+       
+            for tram in self.fleet_data:
+                line = (
+                    f"{tram['Numer_Boczny']}|"
+                    f"{tram['Marka']}|"
+                    f"{tram['Model']}|"
+                    f"{tram['Rok_Produkcji']}|"
+                    f"{tram['Czy_Niskopodlogowy']}|"
+                    f"{tram['Wymiary']}|"
+                    f"{tram['Czy_Dwukierunkowy']}|"
+                    f"{tram['Liczba_Wagonow']}|"
+                    f"{tram['Prędkość_Maksymalna']}|"
+                    f"{tram['Pasażerowie_Stojący']}|"
+                    f"{tram['Pasażerowie_Siedzący']}|"
+                    f"{tram['Czy_Sprawny']}\n"
+                )
+                f.write(line)
+        
+        print(f"Zapisano {len(self.fleet_data)} tramwajow do {filename}")
+
     def generate_all(self, snapshot="T1"):
         """Generuje dane floty"""
 
@@ -104,5 +130,6 @@ class FleetDataGenerator(Config):
 
         self.generate_fleet_data(snapshot)
         self.save_to_csv(snapshot)
+        self.save_to_bulk(snapshot)
         
         print("Generowanie danych floty zakonczone.")

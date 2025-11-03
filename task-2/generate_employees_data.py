@@ -119,7 +119,7 @@ class EmployeesDataGenerator(Config):
             print(f"Zmodyfikowano {len(t1_df)} istniejacych pracownikow z T1")
 
             # Dodajemy NOWYCH pracownikow
-            base_new_employees = self.generate_personal_data(self.EMPLOYEES_COUNT)
+            base_new_employees = self.generate_personal_data(self.T2_EMPLOYEES_COUNT)
             
             for i, base_emp in enumerate(base_new_employees, max_t1_id + 1):
 
@@ -151,6 +151,33 @@ class EmployeesDataGenerator(Config):
         pd.DataFrame(self.employees_data).to_csv(filename, index=False, encoding='utf-8')
         print(f"Zapisano {len(self.employees_data)} pracownikow do {filename}")
        
+    def save_to_bulk(self, snapshot='T1'):
+        """Zapisuje dane pracownikow do BULK - TYLKO KIEROWCY"""
+        
+        filename = f'pracownicy_{snapshot}.bulk'
+        
+        # Tylko kierowcy
+        drivers = [employee for employee in self.employees_data if employee['Stanowisko'] == 'Kierowca']
+        
+        with open(filename, 'w', encoding='utf-8') as f:
+            
+            for employee in drivers:
+                line = (
+                    f"{employee['ID_Pracownika']}|"
+                    f"{employee['Imię']}|"
+                    f"{employee['Drugie_Imię']}|"
+                    f"{employee['Nazwisko']}|"
+                    f"{employee['Data_Urodzenia']}|"
+                    f"{employee['Płeć']}|"
+                    f"{employee['PESEL']}|"
+                    f"{employee['Data_Zatrudnienia']}|"
+                    f"{employee['Stanowisko']}|"
+                    f"{employee['Wykształcenie_Zawód']}\n"
+                )
+                f.write(line)
+        
+        print(f"Zapisano {len(drivers)} kierowców do {filename} (z {len(self.employees_data)} wszystkich pracowników)")
+    
     def generate_all(self, snapshot="T1"):
         """Generuje dane pracownikow"""
 
@@ -162,5 +189,6 @@ class EmployeesDataGenerator(Config):
         
         self.generate_employees_data(snapshot)
         self.save_to_csv(snapshot)
+        self.save_to_bulk(snapshot)
         
         print("Generowanie danych pracownikow zakonczone.")

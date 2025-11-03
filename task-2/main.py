@@ -19,13 +19,13 @@ def main():
 
     # ====================== T2 ======================
 
-    # employees_data_generator.generate_all("T2")
+    employees_data_generator.generate_all("T2")
 
-    # fleet_data_generator.generate_all("T2")
+    fleet_data_generator.generate_all("T2")
 
-    # events_data_generator.generate_all("T2")
+    events_data_generator.generate_all("T2")
 
-    # tram_connect_data_generator.generate_all("T2")
+    tram_connect_data_generator.generate_all("T2")
     
 if __name__ == "__main__":
     main()

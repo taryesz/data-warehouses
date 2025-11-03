@@ -3,6 +3,14 @@ from datetime import datetime, timedelta
 
 class Config:
     
+    def random_date(self, start_date, end_date):
+        """Generuje losowa date w podanym zakresie"""
+
+        delta = end_date - start_date
+        random_days = random.randint(0, delta.days)
+        random_seconds = random.randint(0, 86400)
+        return start_date + timedelta(days=random_days, seconds=random_seconds)
+    
     # Podstawowe dane
     TRAM_BRANDS = ['Pesa', 'Modertrans', 'Solaris', 'Newag']
     TRAM_MODELS = ['SwING', '2016N', '128N', '123N']
@@ -90,23 +98,17 @@ class Config:
     
     # Ustawienia generatora
     EMPLOYEES_COUNT = 200
-    TRAM_COUNT = 50
-    EVENTS_COUNT = 1000
+    T2_EMPLOYEES_COUNT = 50
+
+    TRAMS_COUNT = 50
+    T2_TRAMS_COUNT = 25
+
+    EVENTS_COUNT = 100
+    T2_EVENTS_COUNT = 250
+
+    EVENT_TRACKING_START = datetime(2024, 1, 1)
 
     STOPS_COUNT = len(STOPS)
-    LINES_COUNT = 12
-    COURSE_COUNT_T1 = 10000   # 1mln dla T1
-    # COURSE_COUNT_T2 = 100000  # 100k dla T2 (T1 + 50k nowych)
-    
-    # Daty snapszotow
-    DATE_T1 = datetime(2024, 1, 1)
-    DATE_T2 = datetime(2024, 2, 1)
-    
-    def random_date(self, start_date, end_date):
-        """Generuje losowa date w podanym zakresie"""
-
-        delta = end_date - start_date
-        random_days = random.randint(0, delta.days)
-        random_seconds = random.randint(0, 86400)
-        return start_date + timedelta(days=random_days, seconds=random_seconds)
+    LINES_COUNT = len(LINES)
+    COURSES_COUNT = 10000   # 1mln 
     
