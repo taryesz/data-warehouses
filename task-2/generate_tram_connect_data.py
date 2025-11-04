@@ -274,6 +274,7 @@ class TramConnectDataGenerator(Config):
             fmt = (lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S') if hasattr(dt, 'strftime') else str(dt))
 
             segment_data = {
+                'id': len(self.segments_data) + 1,
                 'id_kursu': course['id_kursu'],
                 'id_przystanek_odcinek': random.randint(1, len(self.stop_segment_data)),
                 'numer_odcinka': segment_num + 1,
@@ -331,9 +332,11 @@ class TramConnectDataGenerator(Config):
 
         with open(f'odcinki_{snapshot}.bulk', 'w', encoding='utf-8') as f:
             for segment in self.segments_data:
-                f.write(f"{segment['id_kursu']}|{segment['id_przystanek_odcinek']}|{segment['numer_odcinka']}|"
-                        f"{segment['oczek_czas_odj']}|{segment['oczek_czas_przyj']}|{segment['real_czas_odj']}|"
-                        f"{segment['real_czas_przyj']}|{segment['liczba_pas']}\n")
+                f.write(
+                    f"{segment['id']}|{segment['id_kursu']}|{segment['id_przystanek_odcinek']}|{segment['numer_odcinka']}|"
+                    f"{segment['oczek_czas_odj']}|{segment['oczek_czas_przyj']}|{segment['real_czas_odj']}|"
+                    f"{segment['real_czas_przyj']}|{segment['liczba_pas']}\n"
+                )
         print(f"Zapisano {len(self.segments_data)} odcinkow do odcinki_{snapshot}.bulk")
     
     def _generate_t1_data(self):
@@ -385,8 +388,8 @@ class TramConnectDataGenerator(Config):
             courses_df = pd.read_csv(
                 'kursy_T1.bulk', sep='|', names=course_cols, parse_dates=date_cols, header=None
             )
-            
-            segment_cols = ['id_kursu', 'id_przystanek_odcinek', 'numer_odcinka', 'oczek_czas_odj', 'oczek_czas_przyj', 'real_czas_odj', 'real_czas_przyj', 'liczba_pas']
+
+            segment_cols = ['id', 'id_kursu', 'id_przystanek_odcinek', 'numer_odcinka', 'oczek_czas_odj', 'oczek_czas_przyj', 'real_czas_odj', 'real_czas_przyj', 'liczba_pas']
             seg_date_cols = ['oczek_czas_odj', 'oczek_czas_przyj', 'real_czas_odj', 'real_czas_przyj']
             
             segments_df = pd.read_csv(
