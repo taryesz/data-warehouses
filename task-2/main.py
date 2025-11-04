@@ -14,8 +14,8 @@ def main():
     events_data_generator = EventsDataGenerator()
     events_data_generator.generate_all()
 
-    tram_connect_data_generator = TramConnectDataGenerator()
-    tram_connect_data_generator.generate_all()
+    # tram_connect_data_generator = TramConnectDataGenerator()
+    # tram_connect_data_generator.generate_all()
 
     # ====================== T2 ======================
 
@@ -27,7 +27,7 @@ def main():
 
     events_data_generator.generate_all("T2")
 
-    tram_connect_data_generator.generate_all("T2")
+    # tram_connect_data_generator.generate_all("T2")
     
 if __name__ == "__main__":
     main()

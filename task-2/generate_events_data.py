@@ -43,7 +43,9 @@ class EventsDataGenerator(Config):
 
         # Dla snapszotu T2 sprawdzamy czy istnieje plik T1
         if snapshot == 'T2':
+
             t1_filename = 'zdarzenia_T1.xlsx'
+
             if os.path.exists(t1_filename):
                 print(f"Znaleziono plik {t1_filename}, tworzenie T2 na podstawie T1...")
                 self.generate_t2_from_t1(t1_filename)
@@ -52,7 +54,7 @@ class EventsDataGenerator(Config):
         # Wczytujemy istniejace dane
         self.load_existing_data(snapshot)
         
-        # Rozszerzony zakres dat - caly rok
+        # Zakres dat - caly rok
         start_date = self.EVENT_TRACKING_START
         end_date = self.EVENT_TRACKING_START + timedelta(days=365)
         
@@ -140,7 +142,7 @@ class EventsDataGenerator(Config):
                 
                 events_by_month[month_key].append(event_data)
             
-            print(f"Zmodyfikowano {modified_count} istniejacych zdarzen z T1")
+            print(f"Zmodyfikowano pierwszych {modified_count} istniejacych zdarzen z T1")
 
             # Wczytujemy dane dla T2 (nowi kierowcy i tramwaje)
             self.load_existing_data('T2')
@@ -187,8 +189,8 @@ class EventsDataGenerator(Config):
             
             self.events_by_month = events_by_month
             
-            print(f"Dodano {self.T2_EVENTS_COUNT} nowych zdarzen")
-            print(f"Razem w T2: {len(self.events_data)} zdarzen")
+            print(f"Wygenerowano {self.T2_EVENTS_COUNT} nowych zdarzen")
+            
 
         except Exception as e:
             print(f"Blad podczas wczytywania pliku {t1_filename}: {e}")
@@ -226,7 +228,7 @@ class EventsDataGenerator(Config):
     def generate_all(self, snapshot="T1"):
         """Generuje dane zdarzen"""
 
-        print(">>> GENEROWANIE DANYCH ZDARZEN <<<")
+        print("\n\n>>> GENEROWANIE DANYCH ZDARZEN <<<")
         
         print(f"Generowanie snapszotu {snapshot}...")
 

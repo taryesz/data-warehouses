@@ -16,12 +16,12 @@ class EmployeesDataGenerator(Config):
         self.person = Person(locale=Locale.PL)
         self.generic = Generic(locale=Locale.PL)
     
-    def generate_personal_data(self, count):
+    def generate_personal_data(self, employees_count):
         """Generuje dane pracownikow używajac Mimesis"""
 
         employees = []
         
-        for i in range(1, count + 1):
+        for i in range(1, employees_count + 1):
 
             # Plec
             gender = random.choice([Gender.MALE, Gender.FEMALE])
@@ -58,12 +58,12 @@ class EmployeesDataGenerator(Config):
                 
         return employees
     
-    def generate_employees_data(self, snapshot='T1'):
+    def generate_employees_data(self, employees_count, snapshot="T1"):
         """Generuje kompletne dane pracownikow"""
-        
-        # Dla snapszotu T2 sprawdzamy czy istnieje plik T1
-        if snapshot == 'T2':
 
+        # Dla snapszotu T2 sprawdzamy czy istnieje plik T1
+        if snapshot == "T2":
+        
             t1_filename = 'pracownicy_T1.csv'
 
             if os.path.exists(t1_filename):
@@ -71,32 +71,35 @@ class EmployeesDataGenerator(Config):
                 self.generate_t2_from_t1(t1_filename)
                 return
         
-        base_employees = self.generate_personal_data(self.EMPLOYEES_COUNT)
+        employees = self.generate_personal_data(employees_count)
         
-        for i, base_emp in enumerate(base_employees, 1):
+        start_id = 1
+        if self.employees_data:
+            start_id = max(emp['ID_Pracownika'] for emp in self.employees_data) + 1
+
+        for i, employee in enumerate(employees, start=start_id):
 
             self.employees_data.append({
                 'ID_Pracownika': i,
-                'Imię': base_emp['first_name'],
-                'Drugie_Imię': base_emp['middle_name'],
-                'Nazwisko': base_emp['last_name'],
-                'Data_Urodzenia': base_emp['birth_date'].strftime('%Y-%m-%d'),
-                'Płeć': "M" if base_emp['gender'] == Gender.MALE else "K",
-                'PESEL': base_emp['pesel'],
+                'Imię': employee['first_name'],
+                'Drugie_Imię': employee['middle_name'],
+                'Nazwisko': employee['last_name'],
+                'Data_Urodzenia': employee['birth_date'].strftime('%Y-%m-%d'),
+                'Płeć': "M" if employee['gender'] == Gender.MALE else "K",
+                'PESEL': employee['pesel'],
                 'Data_Zatrudnienia': self.random_date(datetime(2010, 1, 1), datetime(2023, 12, 31)).strftime('%Y-%m-%d'),
                 'Stanowisko': random.choice(self.JOB_TITLES),
                 'Wykształcenie_Zawód': random.choice(self.EDUCATION),
             })
     
+        print(f"Wygenerowano {employees_count} nowych pracownikow")
+
     def generate_t2_from_t1(self, t1_filename):
         """Generuje dane T2 na podstawie istniejacego pliku T1"""
 
         try:
 
-            t1_df = pd.read_csv(t1_filename)
-            
-            # Ostatni na liscie ID pracownika
-            max_t1_id = t1_df['ID_Pracownika'].max()
+            t1_df = pd.read_csv(t1_filename, dtype={'PESEL': str})
 
             # Modyfikujemy istniejacych pracownikow z T1
             for index, row in t1_df.iterrows():
@@ -116,29 +119,11 @@ class EmployeesDataGenerator(Config):
                 
                 self.employees_data.append(employee_data)
             
-            print(f"Zmodyfikowano {len(t1_df)} istniejacych pracownikow z T1")
+            print(f"Zmodyfikowano pierwszych 10 istniejacych pracownikow z T1")
 
             # Dodajemy NOWYCH pracownikow
-            base_new_employees = self.generate_personal_data(self.T2_EMPLOYEES_COUNT)
+            self.generate_employees_data(employees_count=self.T2_EMPLOYEES_COUNT)
             
-            for i, base_emp in enumerate(base_new_employees, max_t1_id + 1):
-
-                self.employees_data.append({
-                    'ID_Pracownika': i,
-                    'Imię': base_emp['first_name'],
-                    'Drugie_Imię': base_emp['middle_name'],
-                    'Nazwisko': base_emp['last_name'],
-                    'Data_Urodzenia': base_emp['birth_date'].strftime('%Y-%m-%d'),
-                    'Płeć': "M" if base_emp['gender'] == Gender.MALE else "K",
-                    'PESEL': base_emp['pesel'],
-                    'Data_Zatrudnienia': self.random_date(datetime(2010, 1, 1), datetime(2023, 12, 31)).strftime('%Y-%m-%d'),
-                    'Stanowisko': random.choice(self.JOB_TITLES),
-                    'Wykształcenie_Zawód': random.choice(self.EDUCATION),
-                })
-            
-            print(f"Dodano {self.EMPLOYEES_COUNT} nowych pracownikow")
-            print(f"Razem w T2: {len(self.employees_data)} pracownikow")
-
         except Exception as e:
             print(f"Blad podczas wczytywania pliku {t1_filename}: {e}")
             exit(1)
@@ -169,18 +154,20 @@ class EmployeesDataGenerator(Config):
                 )
                 f.write(line)
         
-        print(f"Zapisano {len(drivers)} kierowców do {filename} (z {len(self.employees_data)} wszystkich pracowników)")
+        print(f"Z czego {len(drivers)} pracownikow-kierowcow zapisano do {filename}")
     
     def generate_all(self, snapshot="T1"):
         """Generuje dane pracownikow"""
 
-        print(">>> GENEROWANIE DANYCH PRACOWNIKOW <<<")
+        print("\n\n>>> GENEROWANIE DANYCH PRACOWNIKOW <<<")
         
         print(f"Generowanie snapszotu {snapshot}...")
 
         self.employees_data = []
         
-        self.generate_employees_data(snapshot)
+        employees_count = self.EMPLOYEES_COUNT if snapshot == "T1" else self.T2_EMPLOYEES_COUNT
+
+        self.generate_employees_data(employees_count, snapshot)
         self.save_to_csv(snapshot)
         self.save_to_bulk(snapshot)
         
